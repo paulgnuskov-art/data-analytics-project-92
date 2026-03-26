@@ -35,3 +35,30 @@ CROSS JOIN global_avg ga
 WHERE sa.avg_income < ga.avg_income
 ORDER BY average_income ASC, seller;
 --Шаг № 5 отчет с данными по выручке по каждому продавцу и дню недели.
+SELECT
+    seller,
+    CASE day_num
+        WHEN 1 THEN 'monday'
+        WHEN 2 THEN 'tuesday'
+        WHEN 3 THEN 'wednesday'
+        WHEN 4 THEN 'thursday'
+        WHEN 5 THEN 'friday'
+        WHEN 6 THEN 'saturday'
+        WHEN 7 THEN 'sunday'
+    END AS day_of_week,
+    income
+FROM (
+    SELECT
+        TRIM(CONCAT(e.first_name, ' ', e.last_name)) AS seller,
+        EXTRACT(ISODOW FROM s.sale_date)::int AS day_num,
+        FLOOR(SUM(p.price * s.quantity))::int AS income
+    FROM sales s
+    JOIN employees e ON e.employee_id = s.sales_person_id
+    JOIN products p ON p.product_id = s.product_id
+    GROUP BY
+        e.employee_id,
+        e.first_name,
+        e.last_name,
+        EXTRACT(ISODOW FROM s.sale_date)
+) t
+ORDER BY day_num, seller;
