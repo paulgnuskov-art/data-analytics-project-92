@@ -1,6 +1,6 @@
 --ШАГ № 4 запрос, который считает общее количество покупателей из таблицы customers.
 SELECT COUNT(customer_id) AS customers_count FROM customers;
---ШАГ № 5  отчет с продавцами у которых наибольшая выручка.
+--ШАГ № 5 ЗАДАЧА отчет с продавцами у которых наибольшая выручка.
 SELECT
     TRIM(CONCAT(e.first_name, ' ', e.last_name)) AS seller,
     COUNT(s.sales_id) AS operations,
@@ -62,3 +62,19 @@ FROM (
         EXTRACT(ISODOW FROM s.sale_date)
 ) t
 ORDER BY day_num, seller;
+--ШАГ 6 отчет с возрастными группами покупателей
+SELECT
+    age_category,
+    COUNT(*) AS age_count
+FROM (
+    SELECT
+        CASE
+            WHEN age BETWEEN 16 AND 25 THEN '16-25'
+            WHEN age BETWEEN 26 AND 40 THEN '26-40'
+            ELSE '40+'
+        END AS age_category
+    FROM customers
+    WHERE age >= 16
+) t
+GROUP BY age_category 
+ORDER BY age_category;
