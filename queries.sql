@@ -62,7 +62,7 @@ FROM (
         EXTRACT(ISODOW FROM s.sale_date)
 ) t
 ORDER BY day_num, seller;
---ШАГ 6 отчет с возрастными группами покупателей
+--ШАГ 6 отчет с возрастными группами покупателей.
 SELECT
     age_category,
     COUNT(*) AS age_count
@@ -78,3 +78,41 @@ FROM (
 ) t
 GROUP BY age_category 
 ORDER BY age_category;
+--ШАГ 6 данные по количеству уникальных покупателей и выручке, которую они принесли по месяцам.
+SELECT
+    TO_CHAR(s.sale_date, 'YYYY-MM') AS selling_month,
+    COUNT(DISTINCT s.customer_id) AS total_customers,
+    FLOOR(SUM(p.price * s.quantity))::bigint AS income
+FROM sales s
+JOIN products p ON p.product_id = s.product_id
+GROUP BY selling_month
+ORDER BY selling_month;
+--ШАГ 6 отчет о покупателях, первая покупка которых была в ходе проведения акций.
+SELECT
+    TRIM(CONCAT(c.first_name, ' ', c.last_name)) AS customer,
+    first_sale.sale_date,
+    TRIM(CONCAT(e.first_name, ' ', e.last_name)) AS seller
+FROM (
+    SELECT
+    customer_id,
+    sale_date,
+    sales_person_id,
+    product_id
+FROM (
+    SELECT
+        s.customer_id,
+        s.sale_date,
+        s.sales_person_id,
+        s.product_id,
+        ROW_NUMBER() OVER (
+            PARTITION BY s.customer_id
+            ORDER BY s.sale_date, s.sales_id
+        ) AS rn
+    FROM sales s
+) t
+WHERE rn = 1) AS first_sale
+JOIN customers c ON c.customer_id = first_sale.customer_id
+JOIN employees e ON e.employee_id = first_sale.sales_person_id
+JOIN products p ON p.product_id = first_sale.product_id
+WHERE p.price = 0
+ORDER BY c.customer_id;
