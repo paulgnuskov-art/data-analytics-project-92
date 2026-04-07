@@ -1,6 +1,5 @@
 -- Шаг 4.
-SELECT
-    COUNT(customer_id) AS customers_count
+SELECT COUNT(customer_id) AS customers_count
 FROM customers;
 
 -- Шаг 5. Топ продавцов.
@@ -16,18 +15,26 @@ WITH sales_enriched AS (
         ON s.sales_person_id = e.employee_id
     INNER JOIN products AS p
         ON s.product_id = p.product_id
+),
+
+seller_totals AS (
+    SELECT
+        se.seller,
+        FLOOR(SUM(se.line_income))::bigint AS income,
+        COUNT(se.sales_id) AS operations
+    FROM sales_enriched AS se
+    GROUP BY
+        se.seller
 )
 
 SELECT
-    se.seller,
-    COUNT(se.sales_id) AS operations,
-    FLOOR(SUM(se.line_income))::bigint AS income
-FROM sales_enriched AS se
-GROUP BY
-    se.seller
+    st.seller,
+    st.operations,
+    st.income
+FROM seller_totals AS st
 ORDER BY
-    income DESC,
-    se.seller ASC
+    st.income DESC,
+    st.seller ASC
 LIMIT 10;
 
 -- Шаг 5. Ниже среднего.
@@ -54,8 +61,7 @@ seller_avg AS (
 ),
 
 global_avg AS (
-    SELECT
-        AVG(se.line_income) AS avg_income
+    SELECT AVG(se.line_income) AS avg_income
     FROM sales_enriched AS se
 )
 
@@ -72,6 +78,7 @@ ORDER BY
 -- Шаг 5. По дням недели.
 WITH weekday_sales AS (
     SELECT
+        s.sale_date,
         TRIM(
             CONCAT(e.first_name, ' ', e.last_name)
         ) AS seller,
@@ -99,6 +106,7 @@ weekday_report AS (
     SELECT
         swi.seller,
         swi.day_num,
+        swi.income,
         CASE swi.day_num
             WHEN 1 THEN 'monday'
             WHEN 2 THEN 'tuesday'
@@ -107,8 +115,7 @@ weekday_report AS (
             WHEN 5 THEN 'friday'
             WHEN 6 THEN 'saturday'
             WHEN 7 THEN 'sunday'
-        END AS day_of_week,
-        swi.income
+        END AS day_of_week
     FROM seller_weekday_income AS swi
 )
 
@@ -151,19 +158,27 @@ WITH monthly_sales AS (
     FROM sales AS s
     INNER JOIN products AS p
         ON s.product_id = p.product_id
+),
+
+monthly_totals AS (
+    SELECT
+        ms.selling_month,
+        FLOOR(SUM(ms.line_income))::bigint AS income,
+        COUNT(DISTINCT ms.customer_id) AS total_customers
+    FROM monthly_sales AS ms
+    GROUP BY
+        ms.selling_month
 )
 
 SELECT
-    ms.selling_month,
-    COUNT(DISTINCT ms.customer_id) AS total_customers,
-    FLOOR(SUM(ms.line_income))::bigint AS income
-FROM monthly_sales AS ms
-GROUP BY
-    ms.selling_month
+    mt.selling_month,
+    mt.total_customers,
+    mt.income
+FROM monthly_totals AS mt
 ORDER BY
-    ms.selling_month ASC;
+    mt.selling_month ASC;
 
--- Шаг 6. Первая покупка с акцией.
+-- Шаг 6. Первая акционная.
 WITH ranked_sales AS (
     SELECT
         s.customer_id,
