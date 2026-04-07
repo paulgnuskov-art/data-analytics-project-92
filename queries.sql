@@ -3,38 +3,23 @@ SELECT COUNT(customer_id) AS customers_count
 FROM customers;
 
 -- Шаг 5. Отчет с продавцами у которых наибольшая выручка.
-WITH sales_enriched AS (
-    SELECT
-        s.sales_id,
-        TRIM(
-            CONCAT(e.first_name, ' ', e.last_name)
-        ) AS seller,
-        p.price * s.quantity AS line_income
-    FROM sales AS s
-    INNER JOIN employees AS e
-        ON s.sales_person_id = e.employee_id
-    INNER JOIN products AS p
-        ON s.product_id = p.product_id
-),
-
-seller_totals AS (
-    SELECT
-        se.seller,
-        FLOOR(SUM(se.line_income))::bigint AS income,
-        COUNT(se.sales_id) AS operations
-    FROM sales_enriched AS se
-    GROUP BY
-        se.seller
-)
-
 SELECT
-    st.seller,
-    st.operations,
-    st.income
-FROM seller_totals AS st
+    TRIM(
+        CONCAT(e.first_name, ' ', e.last_name)
+    ) AS seller,
+    COUNT(s.sales_id) AS operations,
+    FLOOR(SUM(p.price * s.quantity))::bigint AS income
+FROM sales AS s
+INNER JOIN employees AS e
+    ON s.sales_person_id = e.employee_id
+INNER JOIN products AS p
+    ON s.product_id = p.product_id
+GROUP BY
+    e.first_name,
+    e.last_name
 ORDER BY
-    st.income DESC,
-    st.seller ASC
+    income DESC,
+    seller ASC
 LIMIT 10;
 
 -- Шаг 5. Отчет с продавцами, чья выручка ниже средней выручки всех продавцов.
