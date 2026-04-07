@@ -1,9 +1,9 @@
--- Шаг 4. Количество покупателей.
+-- Шаг 4.
 SELECT
     COUNT(customer_id) AS customers_count
 FROM customers;
 
--- Шаг 5. Топ продавцов по выручке.
+-- Шаг 5. Топ продавцов.
 WITH sales_enriched AS (
     SELECT
         s.sales_id,
@@ -30,7 +30,7 @@ ORDER BY
     se.seller ASC
 LIMIT 10;
 
--- Шаг 5. Продавцы ниже среднего.
+-- Шаг 5. Ниже среднего.
 WITH sales_enriched AS (
     SELECT
         TRIM(
@@ -43,6 +43,7 @@ WITH sales_enriched AS (
     INNER JOIN products AS p
         ON s.product_id = p.product_id
 ),
+
 seller_avg AS (
     SELECT
         se.seller,
@@ -51,6 +52,7 @@ seller_avg AS (
     GROUP BY
         se.seller
 ),
+
 global_avg AS (
     SELECT
         AVG(se.line_income) AS avg_income
@@ -67,13 +69,13 @@ ORDER BY
     average_income ASC,
     sa.seller ASC;
 
--- Шаг 5. Выручка по дням недели.
+-- Шаг 5. По дням недели.
 WITH weekday_sales AS (
     SELECT
-        EXTRACT(ISODOW FROM s.sale_date)::int AS day_num,
         TRIM(
             CONCAT(e.first_name, ' ', e.last_name)
         ) AS seller,
+        EXTRACT(ISODOW FROM s.sale_date)::int AS day_num,
         p.price * s.quantity AS line_income
     FROM sales AS s
     INNER JOIN employees AS e
@@ -81,6 +83,7 @@ WITH weekday_sales AS (
     INNER JOIN products AS p
         ON s.product_id = p.product_id
 ),
+
 seller_weekday_income AS (
     SELECT
         ws.seller,
@@ -91,6 +94,7 @@ seller_weekday_income AS (
         ws.seller,
         ws.day_num
 ),
+
 weekday_report AS (
     SELECT
         swi.seller,
@@ -138,7 +142,7 @@ GROUP BY
 ORDER BY
     agb.age_category ASC;
 
--- Шаг 6. Покупатели и выручка по месяцам.
+-- Шаг 6. По месяцам.
 WITH monthly_sales AS (
     SELECT
         s.customer_id,
@@ -159,7 +163,7 @@ GROUP BY
 ORDER BY
     ms.selling_month ASC;
 
--- Шаг 6. Первая акционная покупка.
+-- Шаг 6. Первая покупка с акцией.
 WITH ranked_sales AS (
     SELECT
         s.customer_id,
@@ -174,6 +178,7 @@ WITH ranked_sales AS (
         ) AS rn
     FROM sales AS s
 ),
+
 first_sales AS (
     SELECT
         rs.customer_id,
@@ -183,6 +188,7 @@ first_sales AS (
     FROM ranked_sales AS rs
     WHERE rs.rn = 1
 ),
+
 special_offer_report AS (
     SELECT
         c.customer_id,
