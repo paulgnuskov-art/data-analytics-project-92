@@ -1,12 +1,15 @@
---ШАГ № 4 запрос, который считает общее количество покупателей из таблицы customers.
+-- Шаг 4. Количество покупателей.
 SELECT
     COUNT(customer_id) AS customers_count
 FROM customers;
---ШАГ № 5 ЗАДАЧА отчет с продавцами у которых наибольшая выручка.
+
+-- Шаг 5. Топ продавцов по выручке.
 WITH sales_enriched AS (
     SELECT
-        TRIM(CONCAT(e.first_name, ' ', e.last_name)) AS seller,
         s.sales_id,
+        TRIM(
+            CONCAT(e.first_name, ' ', e.last_name)
+        ) AS seller,
         p.price * s.quantity AS line_income
     FROM sales AS s
     INNER JOIN employees AS e
@@ -27,10 +30,12 @@ ORDER BY
     se.seller ASC
 LIMIT 10;
 
---Шаг № 5 отчет с продавцами, чья выручка ниже средней выручки всех продавцов.
+-- Шаг 5. Продавцы ниже среднего.
 WITH sales_enriched AS (
     SELECT
-        TRIM(CONCAT(e.first_name, ' ', e.last_name)) AS seller,
+        TRIM(
+            CONCAT(e.first_name, ' ', e.last_name)
+        ) AS seller,
         p.price * s.quantity AS line_income
     FROM sales AS s
     INNER JOIN employees AS e
@@ -62,11 +67,13 @@ ORDER BY
     average_income ASC,
     sa.seller ASC;
 
---Шаг № 5 отчет с данными по выручке по каждому продавцу и дню недели.
+-- Шаг 5. Выручка по дням недели.
 WITH weekday_sales AS (
     SELECT
-        TRIM(CONCAT(e.first_name, ' ', e.last_name)) AS seller,
         EXTRACT(ISODOW FROM s.sale_date)::int AS day_num,
+        TRIM(
+            CONCAT(e.first_name, ' ', e.last_name)
+        ) AS seller,
         p.price * s.quantity AS line_income
     FROM sales AS s
     INNER JOIN employees AS e
@@ -109,7 +116,8 @@ FROM weekday_report AS wr
 ORDER BY
     wr.day_num ASC,
     wr.seller ASC;
---ШАГ 6 отчет с возрастными группами покупателей.
+
+-- Шаг 6. Возрастные группы.
 WITH age_groups_base AS (
     SELECT
         CASE
@@ -129,11 +137,12 @@ GROUP BY
     agb.age_category
 ORDER BY
     agb.age_category ASC;
---ШАГ 6 данные по количеству уникальных покупателей и выручке, которую они принесли по месяцам.
+
+-- Шаг 6. Покупатели и выручка по месяцам.
 WITH monthly_sales AS (
     SELECT
-        TO_CHAR(s.sale_date, 'YYYY-MM') AS selling_month,
         s.customer_id,
+        TO_CHAR(s.sale_date, 'YYYY-MM') AS selling_month,
         p.price * s.quantity AS line_income
     FROM sales AS s
     INNER JOIN products AS p
@@ -150,7 +159,7 @@ GROUP BY
 ORDER BY
     ms.selling_month ASC;
 
---ШАГ 6 отчет о покупателях, первая покупка которых была в ходе проведения акций.
+-- Шаг 6. Первая акционная покупка.
 WITH ranked_sales AS (
     SELECT
         s.customer_id,
@@ -176,10 +185,14 @@ first_sales AS (
 ),
 special_offer_report AS (
     SELECT
-        TRIM(CONCAT(c.first_name, ' ', c.last_name)) AS customer,
+        c.customer_id,
         fs.sale_date,
-        TRIM(CONCAT(e.first_name, ' ', e.last_name)) AS seller,
-        c.customer_id
+        TRIM(
+            CONCAT(c.first_name, ' ', c.last_name)
+        ) AS customer,
+        TRIM(
+            CONCAT(e.first_name, ' ', e.last_name)
+        ) AS seller
     FROM first_sales AS fs
     INNER JOIN customers AS c
         ON fs.customer_id = c.customer_id
