@@ -1,8 +1,8 @@
--- Шаг 4.
+-- Шаг 4. Общее количество покупателей.
 SELECT COUNT(customer_id) AS customers_count
 FROM customers;
 
--- Шаг 5. Топ продавцов.
+-- Шаг 5. Отчет с продавцами у которых наибольшая выручка.
 WITH sales_enriched AS (
     SELECT
         s.sales_id,
@@ -37,7 +37,7 @@ ORDER BY
     st.seller ASC
 LIMIT 10;
 
--- Шаг 5. Ниже среднего.
+-- Шаг 5. Отчет с продавцами, чья выручка ниже средней выручки всех продавцов.
 WITH sales_enriched AS (
     SELECT
         TRIM(
@@ -75,15 +75,15 @@ ORDER BY
     average_income ASC,
     sa.seller ASC;
 
--- Шаг 5. По дням недели.
+-- Шаг 5. Отчет с данными по выручке по каждому продавцу и дню недели.
 WITH weekday_sales AS (
     SELECT
         s.sale_date,
+        p.price,
+        s.quantity,
         TRIM(
             CONCAT(e.first_name, ' ', e.last_name)
-        ) AS seller,
-        EXTRACT(ISODOW FROM s.sale_date)::int AS day_num,
-        p.price * s.quantity AS line_income
+        ) AS seller
     FROM sales AS s
     INNER JOIN employees AS e
         ON s.sales_person_id = e.employee_id
@@ -94,12 +94,12 @@ WITH weekday_sales AS (
 seller_weekday_income AS (
     SELECT
         ws.seller,
-        ws.day_num,
-        FLOOR(SUM(ws.line_income))::bigint AS income
+        EXTRACT(ISODOW FROM ws.sale_date)::int AS day_num,
+        FLOOR(SUM(ws.price * ws.quantity))::bigint AS income
     FROM weekday_sales AS ws
     GROUP BY
         ws.seller,
-        ws.day_num
+        EXTRACT(ISODOW FROM ws.sale_date)
 ),
 
 weekday_report AS (
@@ -127,8 +127,7 @@ FROM weekday_report AS wr
 ORDER BY
     wr.day_num ASC,
     wr.seller ASC;
-
--- Шаг 6. Возрастные группы.
+-- Шаг 6. Количество покупателей в разных возрастных группах.
 WITH age_groups_base AS (
     SELECT
         CASE
@@ -149,7 +148,7 @@ GROUP BY
 ORDER BY
     agb.age_category ASC;
 
--- Шаг 6. По месяцам.
+-- Шаг 6. Данные по количеству уникальных покупателей и выручке, которую они принесли.
 WITH monthly_sales AS (
     SELECT
         s.customer_id,
@@ -178,7 +177,7 @@ FROM monthly_totals AS mt
 ORDER BY
     mt.selling_month ASC;
 
--- Шаг 6. Первая акционная.
+-- Шаг 6. Покупатели, первая покупка которых была в ходе проведения акций.
 WITH ranked_sales AS (
     SELECT
         s.customer_id,
