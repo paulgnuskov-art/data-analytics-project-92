@@ -148,7 +148,7 @@ GROUP BY
 ORDER BY
     agb.age_category ASC;
 
--- Шаг 6. Данные по количеству уникальных покупателей и выручке, которую они принесли.
+-- Шаг 6. Данные по количеству уникальных покупателей.
 WITH monthly_sales AS (
     SELECT
         s.customer_id,
