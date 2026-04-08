@@ -15,8 +15,7 @@ INNER JOIN employees AS e
 INNER JOIN products AS p
     ON s.product_id = p.product_id
 GROUP BY
-    e.first_name,
-    e.last_name
+    seller
 ORDER BY
     income DESC,
     seller ASC
