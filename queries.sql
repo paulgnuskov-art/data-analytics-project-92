@@ -22,43 +22,39 @@ ORDER BY
 LIMIT 10;
 
 -- Шаг 5. Отчет с продавцами, чья выручка ниже средней выручки всех продавцов.
-WITH sales_enriched AS (
+WITH seller_avg AS (
     SELECT
         TRIM(
             CONCAT(e.first_name, ' ', e.last_name)
         ) AS seller,
-        p.price * s.quantity AS line_income
+        AVG(p.price * s.quantity) AS avg_income
     FROM sales AS s
     INNER JOIN employees AS e
         ON s.sales_person_id = e.employee_id
     INNER JOIN products AS p
         ON s.product_id = p.product_id
-),
-
-seller_avg AS (
-    SELECT
-        se.seller,
-        AVG(se.line_income) AS avg_income
-    FROM sales_enriched AS se
     GROUP BY
-        se.seller
+        e.employee_id,
+        e.first_name,
+        e.last_name
 ),
-
-global_avg AS (
-    SELECT AVG(se.line_income) AS avg_income
-    FROM sales_enriched AS se
+company_avg AS (
+    SELECT
+        AVG(p.price * s.quantity) AS avg_income
+    FROM sales AS s
+    INNER JOIN products AS p
+        ON s.product_id = p.product_id
 )
 
 SELECT
     sa.seller,
     FLOOR(sa.avg_income)::bigint AS average_income
 FROM seller_avg AS sa
-CROSS JOIN global_avg AS ga
-WHERE sa.avg_income < ga.avg_income
+CROSS JOIN company_avg AS ca
+WHERE sa.avg_income < ca.avg_income
 ORDER BY
     average_income ASC,
     sa.seller ASC;
-
 -- Шаг 5. Отчет с данными по выручке по каждому продавцу и дню недели.
 WITH weekday_sales AS (
     SELECT
