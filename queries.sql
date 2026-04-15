@@ -178,38 +178,31 @@ ORDER BY
 
 -- Шаг 6. Покупатели, первая покупка которых была в ходе проведения акций.
 SELECT
-    sor.customer,
-    sor.sale_date,
-    sor.seller
+    fs.sale_date,
+    TRIM(
+        CONCAT(c.first_name, ' ', c.last_name)
+    ) AS customer,
+    TRIM(
+        CONCAT(e.first_name, ' ', e.last_name)
+    ) AS seller
 FROM (
-    SELECT
-        c.customer_id,
-        fs.sale_date,
-        TRIM(
-            CONCAT(c.first_name, ' ', c.last_name)
-        ) AS customer,
-        TRIM(
-            CONCAT(e.first_name, ' ', e.last_name)
-        ) AS seller
-    FROM (
-        SELECT DISTINCT ON (s.customer_id)
-            s.customer_id,
-            s.sale_date,
-            s.sales_person_id,
-            s.product_id
-        FROM sales AS s
-        ORDER BY
-            s.customer_id ASC,
-            s.sale_date ASC,
-            s.sales_id ASC
-    ) AS fs
-    INNER JOIN customers AS c
-        ON fs.customer_id = c.customer_id
-    INNER JOIN employees AS e
-        ON fs.sales_person_id = e.employee_id
-    INNER JOIN products AS p
-        ON fs.product_id = p.product_id
-    WHERE p.price = 0
-) AS sor
+    SELECT DISTINCT ON (s.customer_id)
+        s.customer_id,
+        s.sale_date,
+        s.sales_person_id,
+        s.product_id
+    FROM sales AS s
+    ORDER BY
+        s.customer_id ASC,
+        s.sale_date ASC,
+        s.sales_id ASC
+) AS fs
+INNER JOIN customers AS c
+    ON fs.customer_id = c.customer_id
+INNER JOIN employees AS e
+    ON fs.sales_person_id = e.employee_id
+INNER JOIN products AS p
+    ON fs.product_id = p.product_id
+WHERE p.price = 0
 ORDER BY
-    sor.customer_id ASC;
+    c.customer_id ASC;
