@@ -150,8 +150,8 @@ ORDER BY
 WITH monthly_sales AS (
     SELECT
         TO_CHAR(s.sale_date, 'YYYY-MM') AS selling_month,
+        COUNT(DISTINCT s.customer_id) AS total_customers,
         FLOOR(SUM(p.price * s.quantity))::bigint AS income
-        COUNT(DISTINCT s.customer_id) AS total_customers
     FROM sales AS s
     INNER JOIN products AS p
         ON s.product_id = p.product_id
