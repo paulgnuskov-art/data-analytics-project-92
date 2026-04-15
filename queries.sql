@@ -97,31 +97,21 @@ ORDER BY
 -- Шаг 6. Данные по количеству уникальных покупателей.
 WITH monthly_sales AS (
     SELECT
-        s.customer_id,
         TO_CHAR(s.sale_date, 'YYYY-MM') AS selling_month,
-        p.price * s.quantity AS line_income
+        COUNT(DISTINCT s.customer_id) AS total_customers,
+        FLOOR(SUM(p.price * s.quantity))::bigint AS income
     FROM sales AS s
     INNER JOIN products AS p
         ON s.product_id = p.product_id
-),
-
-monthly_totals AS (
-    SELECT
-        ms.selling_month,
-        FLOOR(SUM(ms.line_income))::bigint AS income,
-        COUNT(DISTINCT ms.customer_id) AS total_customers
-    FROM monthly_sales AS ms
-    GROUP BY
-        ms.selling_month
+        group by selling_month
 )
-
 SELECT
-    mt.selling_month,
-    mt.total_customers,
-    mt.income
-FROM monthly_totals AS mt
+    ms.selling_month,
+    ms.total_customers,
+    ms.income
+FROM monthly_sales AS ms
 ORDER BY
-    mt.selling_month ASC;
+    ms.selling_month ASC;
 
 -- Шаг 6. Покупатели, первая покупка которых была в ходе проведения акций.
 WITH ranked_sales AS (
