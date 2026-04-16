@@ -8,7 +8,7 @@ SELECT
     TRIM(
         CONCAT(e.first_name, ' ', e.last_name)
     ) AS seller,
-    COUNT(*) AS operations,
+    COUNT(*) AS operations
 FROM sales AS s
 INNER JOIN employees AS e
     ON s.sales_person_id = e.employee_id
@@ -60,6 +60,7 @@ ORDER BY
 
 -- Шаг 5. Отчет с данными по выручке по каждому продавцу и дню недели.
 SELECT
+    FLOOR(SUM(p.price * s.quantity))::bigint AS income,
     TRIM(
         CONCAT(e.first_name, ' ', e.last_name)
     ) AS seller,
@@ -71,8 +72,7 @@ SELECT
         WHEN 5 THEN 'friday'
         WHEN 6 THEN 'saturday'
         WHEN 7 THEN 'sunday'
-    END AS day_of_week,
-    FLOOR(SUM(p.price * s.quantity))::bigint AS income
+    END AS day_of_week
 FROM sales AS s
 INNER JOIN employees AS e
     ON s.sales_person_id = e.employee_id
@@ -104,9 +104,9 @@ ORDER BY
 
 -- Шаг 6. Данные по количеству уникальных покупателей и выручке.
 SELECT
+    FLOOR(SUM(p.price * s.quantity))::bigint AS income,
     TO_CHAR(s.sale_date, 'YYYY-MM') AS selling_month,
-    COUNT(DISTINCT s.customer_id) AS total_customers,
-    FLOOR(SUM(p.price * s.quantity))::bigint AS income
+    COUNT(DISTINCT s.customer_id) AS total_customers
 FROM sales AS s
 INNER JOIN products AS p
     ON s.product_id = p.product_id
