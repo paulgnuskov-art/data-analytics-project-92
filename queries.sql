@@ -147,25 +147,17 @@ ORDER BY
     agb.age_category ASC;
 
 -- Шаг 6. Данные по количеству уникальных покупателей и выручке.
-WITH monthly_sales AS (
     SELECT
-        FLOOR(SUM(p.price * s.quantity))::bigint AS income,
         TO_CHAR(s.sale_date, 'YYYY-MM') AS selling_month,
-        COUNT(DISTINCT s.customer_id) AS total_customers
+        COUNT(DISTINCT s.customer_id) AS total_customers,
+        FLOOR(SUM(p.price * s.quantity))::bigint AS income
     FROM sales AS s
     INNER JOIN products AS p
         ON s.product_id = p.product_id
     GROUP BY
         selling_month
-)
-
-SELECT
-    ms.selling_month,
-    ms.total_customers,
-    ms.income
-FROM monthly_sales AS ms
-ORDER BY
-    ms.selling_month ASC;
+        ORDER BY
+        selling_month ASC;
 
 -- Шаг 6. Покупатели, первая покупка которых была в ходе проведения акций.
 SELECT
