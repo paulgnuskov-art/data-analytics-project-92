@@ -4,11 +4,11 @@ FROM customers;
 
 -- Шаг 5. Отчет с продавцами у которых наибольшая выручка.
 SELECT
+    FLOOR(SUM(p.price * s.quantity))::bigint AS income,
     TRIM(
         CONCAT(e.first_name, ' ', e.last_name)
     ) AS seller,
     COUNT(*) AS operations,
-    FLOOR(SUM(p.price * s.quantity))::bigint AS income
 FROM sales AS s
 INNER JOIN employees AS e
     ON s.sales_person_id = e.employee_id
