@@ -88,32 +88,32 @@ ORDER BY
     seller ASC;
 
 -- Шаг 6. Количество покупателей в разных возрастных группах.
-    SELECT
-        CASE
-            WHEN age BETWEEN 16 AND 25 THEN '16-25'
-            WHEN age BETWEEN 26 AND 40 THEN '26-40'
-            ELSE '40+'
-        END AS age_category,
-        COUNT(*) AS age_count
-    FROM customers
-    WHERE age >= 16
+SELECT
+    CASE
+        WHEN age BETWEEN 16 AND 25 THEN '16-25'
+        WHEN age BETWEEN 26 AND 40 THEN '26-40'
+        ELSE '40+'
+    END AS age_category,
+    COUNT(*) AS age_count
+FROM customers
+WHERE age >= 16
 GROUP BY
     age_category
 ORDER BY
     age_category ASC;
 
 -- Шаг 6. Данные по количеству уникальных покупателей и выручке.
-    SELECT
-        TO_CHAR(s.sale_date, 'YYYY-MM') AS selling_month,
-        COUNT(DISTINCT s.customer_id) AS total_customers,
-        FLOOR(SUM(p.price * s.quantity))::bigint AS income
-    FROM sales AS s
-    INNER JOIN products AS p
-        ON s.product_id = p.product_id
-    GROUP BY
-        selling_month
-        ORDER BY
-        selling_month ASC;
+SELECT
+    TO_CHAR(s.sale_date, 'YYYY-MM') AS selling_month,
+    COUNT(DISTINCT s.customer_id) AS total_customers,
+    FLOOR(SUM(p.price * s.quantity))::bigint AS income
+FROM sales AS s
+INNER JOIN products AS p
+    ON s.product_id = p.product_id
+GROUP BY
+    selling_month
+ORDER BY
+    selling_month ASC;
 
 -- Шаг 6. Покупатели, первая покупка которых была в ходе проведения акций.
 SELECT
