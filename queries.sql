@@ -126,25 +126,19 @@ ORDER BY
     wr.seller ASC;
 
 -- Шаг 6. Количество покупателей в разных возрастных группах.
-WITH age_groups_base AS (
     SELECT
         CASE
             WHEN age BETWEEN 16 AND 25 THEN '16-25'
             WHEN age BETWEEN 26 AND 40 THEN '26-40'
             ELSE '40+'
-        END AS age_category
+        END AS age_category,
+        COUNT(*) AS age_count
     FROM customers
     WHERE age >= 16
-)
-
-SELECT
-    agb.age_category,
-    COUNT(*) AS age_count
-FROM age_groups_base AS agb
 GROUP BY
-    agb.age_category
+    age_category
 ORDER BY
-    agb.age_category ASC;
+    age_category ASC;
 
 -- Шаг 6. Данные по количеству уникальных покупателей и выручке.
     SELECT
